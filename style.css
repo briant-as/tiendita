@@ -133,40 +133,18 @@ footer {
     margin-top: 40px;
 }
 
-/* Para Tablets (hasta 768px) */
+/* ================================== */
+/* === ESTILOS RESPONSIVE (MÓVIL) === */
+/* ================================== */
+
+/* Para Tablets y Celulares (hasta 768px de ancho) */
 @media (max-width: 768px) {
 
-    .cart,
-    .carta {
-        /* Hacemos que cada tarjeta ocupe casi el 50% para que haya 2 por fila */
-        width: calc(50% - 30px);
-    }
-}
-
-/* Para Celulares (hasta 480px) */
-@media (max-width: 480px) {
-
-    .cart,
-    .carta {
-        /* Hacemos que cada tarjeta ocupe el 100% para que haya solo 1 por fila */
-        width: 100%;
-    }
-}
-
-/* Para Celulares (hasta 480px) */
-@media (max-width: 480px) {
-
-    .cart,
-    .carta {
-        width: 100%;
-    }
-
-    /* --- Añade esto --- */
+    /* --- Estilos para el encabezado --- */
     header {
         flex-direction: column;
-        /* Apila los elementos verticalmente */
+        /* Apila logo, búsqueda y menú */
         gap: 20px;
-        /* Añade espacio entre el logo, la búsqueda y el menú */
     }
 
     header nav ul {
@@ -176,5 +154,28 @@ footer {
         gap: 15px;
     }
 
-    /* ------------------- */
+    /* --- Estilos para los productos --- */
+    .caja,
+    .grilla-productos {
+        /* Hacemos que la grilla ocupe todo el ancho */
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .carta,
+    .cart {
+        /* Hacemos que cada tarjeta ocupe un 80% del ancho */
+        width: 80%;
+    }
+}
+
+
+/* Para Celulares (Ajuste extra, si es necesario) */
+@media (max-width: 480px) {
+
+    .carta,
+    .cart {
+        /* En pantallas muy pequeñas, la tarjeta ocupa más espacio */
+        width: 90%;
+    }
 }

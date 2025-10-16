@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles del Producto</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos adicionales solo para esta página */
+        .producto-detalle {
+            display: flex;
+            gap: 40px;
+            padding: 50px;
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .producto-imagen {
+            flex: 1;
+            /* Ocupa la mitad del espacio */
+        }
+
+        .producto-info {
+            flex: 1;
+            /* Ocupa la otra mitad */
+        }
+
+        .producto-imagen img {
+            width: 100%;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1 class="logo"><a href="index.html">Tiendita</a></h1>
+        <nav>
+            <ul>
+                <li><a href="#">Novedades</a></li>
+                <li><a href="#">Hombre</a></li>
+                <li><a href="#">Mujer</a></li>
+                <li><a href="#">Contacto</a></li>
+                <li><a href="#" id="icono-carrito">🛒 (<span id="contador-carrito">0</span>)</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="producto-detalle">
+
+            <div class="producto-imagen">
+                <img id="producto-img" src="fot/prueba.jpg" alt="Cargando...">
+            </div>
+
+            <div class="producto-info">
+                <h2 id="producto-nombre">Nombre del Producto</h2>
+                <p id="producto-descripcion">Aquí va la descripción detallada del producto...</p>
+                <p class="price" id="producto-precio">$0.00</p>
+                <button id="btn-agregar">Añadir al carrito</button>
+            </div>
+
+        </section>
+    </main>
+
+    <script src="productos.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

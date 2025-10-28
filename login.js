@@ -1,18 +1,18 @@
-// Archivo: login.js
+// Archivo: login.js (Actualizado para Render)
 
 document.addEventListener('DOMContentLoaded', () => {
     const formLogin = document.getElementById('form-login');
     const mensajeLogin = document.getElementById('mensaje-login');
 
     formLogin.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Evitamos que la página se recargue
+        event.preventDefault();
 
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
         try {
-            // 1. Enviamos los datos del formulario al backend
-            const respuesta = await fetch('http://localhost:3000/api/login', {
+            // ACTUALIZADO: URL del backend desplegado
+            const respuesta = await fetch('https://tiendita-zulr.onrender.com/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -23,13 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const resultado = await respuesta.json();
 
             if (respuesta.ok) {
-                // 2. ¡Éxito! Guardamos el "pase" (token) en el navegador
                 localStorage.setItem('admin-token', resultado.token);
-
-                // 3. Redirigimos al usuario al panel de administración
                 window.location.href = 'admin.html';
             } else {
-                // 4. Mostramos el mensaje de error del servidor
                 mensajeLogin.textContent = resultado.message;
             }
 

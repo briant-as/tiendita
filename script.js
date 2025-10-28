@@ -1,41 +1,18 @@
-// Archivo: script.js (VERSIÓN COMPLETA Y CONSOLIDADA)
+// Archivo: script.js (VERSIÓN COMPLETA Y CONSOLIDADA - Actualizado para Render)
 
 // --- FUNCIÓN PARA PEDIR TODOS LOS PRODUCTOS A LA API ---
 async function obtenerTodosLosProductos() {
     try {
-        const respuesta = await fetch('http://localhost:3000/api/productos');
+        // ACTUALIZADO: URL del backend desplegado
+        const respuesta = await fetch('https://tiendita-zulr.onrender.com/api/productos');
         if (!respuesta.ok) throw new Error('Error al conectar con el servidor');
         return await respuesta.json();
     } catch (error) {
-        console.error(error);
+        console.error("Error obteniendo productos:", error);
         return [];
     }
 }
-// En script.js
 
-// --- FUNCIÓN AUXILIAR PARA DIBUJAR PRODUCTOS EN LA GRILLA ---
-function mostrarProductosEnGrilla(productos, selectorContenedor) {
-    const contenedor = document.querySelector(selectorContenedor);
-    if (!contenedor) return;
-
-    contenedor.innerHTML = ''; // Limpiamos la grilla
-
-    if (productos.length === 0) {
-        contenedor.innerHTML = '<p>No se encontraron productos que coincidan con tu búsqueda.</p>';
-        return;
-    }
-
-    productos.forEach(producto => {
-        const productoHTML = `
-            <a href="producto.html?id=${producto.id}" class="cart">
-                <img src="${producto.imagen}" alt="${producto.nombre}">
-                <p>${producto.nombre}</p>
-                <p class="price">$${producto.precio}</p>
-            </a>
-        `;
-        contenedor.innerHTML += productoHTML;
-    });
-}
 // --- FUNCIONES DEL CARRITO ---
 function agregarAlCarrito(productoId) {
     const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
@@ -74,9 +51,11 @@ async function renderizarCarrito() {
             if (producto) {
                 const itemPrecio = parseFloat(producto.precio) * cantidad;
                 total += itemPrecio;
+                // ACTUALIZADO: URL de la imagen del backend desplegado
+                const imagenSrc = `https://tiendita-zulr.onrender.com/${producto.imagen.replace(/\\/g, '/')}`;
                 const itemHTML = `
                 <div class="item-carrito">
-                    <img src="${producto.imagen}" alt="${producto.nombre}">
+                    <img src="${imagenSrc}" alt="${producto.nombre}">
                     <div class="item-info">
                         <h4>${producto.nombre}</h4>
                         <p>Precio: $${producto.precio}</p>
@@ -102,69 +81,49 @@ async function renderizarCarrito() {
 function vaciarCarrito(productos) {
     localStorage.removeItem('carrito');
     actualizarContadorCarrito();
-    // Vuelve a renderizar el carrito (que ahora estará vacío)
     renderizarCarrito(productos);
-}
-// En script.js
-
-// --- LÓGICA DE LA BARRA DE BÚSQUEDA ---
-function configurarBarraBusqueda() {
-    const formBusqueda = document.getElementById('form-busqueda');
-    const inputBusqueda = document.getElementById('input-busqueda');
-
-    if (!formBusqueda || !inputBusqueda) return; // Si no estamos en una página con búsqueda, salimos
-
-    // Evento para cuando el usuario escribe (live search)
-    inputBusqueda.addEventListener('input', async (event) => {
-        const termino = event.target.value.trim();
-
-        if (termino.length > 1) {
-            // Si escribe más de 1 letra, busca en la API
-            try {
-                const respuesta = await fetch(`http://localhost:3000/api/productos/buscar?q=${termino}`);
-                const productos = await respuesta.json();
-                // Mostramos los resultados en la grilla principal
-                mostrarProductosEnGrilla(productos, '.caja-de-productos');
-                // Ocultamos la grilla de ofertas
-                document.querySelector('.productos-destacados').style.display = 'none';
-                document.querySelector('.caja-grande h3').textContent = 'Resultados de la Búsqueda';
-            } catch (error) {
-                console.error("Error al buscar:", error);
-            }
-        } else if (termino.length === 0) {
-            // Si borra todo, volvemos a mostrar todos los productos
-            renderizarProductosInicio();
-            document.querySelector('.productos-destacados').style.display = 'block';
-            document.querySelector('.caja-grande h3').textContent = 'ENCUENTRA TU ESTILO';
-        }
-    });
-
-    // Prevenimos que el formulario se envíe de la forma tradicional
-    formBusqueda.addEventListener('submit', (event) => {
-        event.preventDefault();
-    });
 }
 
 // --- LÓGICA DE LA PÁGINA DE INICIO ---
-// En script.js
-
-// --- LÓGICA DE LA PÁGINA DE INICIO (ACTUALIZADA) ---
 async function renderizarProductosInicio() {
     const productos = await obtenerTodosLosProductos();
-    // Usamos la nueva función para mostrar en ambas grillas
-    mostrarProductosEnGrilla(productos, '.caja-de-productos');
-    mostrarProductosEnGrilla(productos, '.caja');
+    const contenedorEstilo = document.querySelector('.caja-de-productos');
+    const contenedorOfertas = document.querySelector('.caja');
+
+    if (contenedorEstilo) contenedorEstilo.innerHTML = '';
+    if (contenedorOfertas) contenedorOfertas.innerHTML = '';
+
+    productos.forEach(producto => {
+        // ACTUALIZADO: URL de la imagen del backend desplegado
+        const imagenSrc = `https://tiendita-zulr.onrender.com/${producto.imagen.replace(/\\/g, '/')}`;
+        const productoHTML = `
+            <a href="producto.html?id=${producto.id}" class="cart">
+                <img src="${imagenSrc}" alt="${producto.nombre}">
+                <p>${producto.nombre}</p>
+                <p class="price">$${producto.precio}</p>
+            </a>
+        `;
+
+        if (contenedorEstilo) {
+            contenedorEstilo.innerHTML += productoHTML;
+        }
+        if (contenedorOfertas) {
+            contenedorOfertas.innerHTML += productoHTML;
+        }
+    });
 }
 
 // --- LÓGICA DE LA PÁGINA DE PRODUCTO ---
 async function configurarPaginaProducto() {
-    const productos = await obtenerTodosLosProductos(); // Obtenemos todos para encontrar el nuestro
+    const productos = await obtenerTodosLosProductos();
     const params = new URLSearchParams(window.location.search);
     const productoId = params.get('id');
     const producto = productos.find(p => p.id === productoId);
 
     if (producto) {
-        document.getElementById('producto-img').src = producto.imagen;
+        // ACTUALIZADO: URL de la imagen del backend desplegado
+        document.getElementById('producto-img').src = `https://tiendita-zulr.onrender.com/${producto.imagen.replace(/\\/g, '/')}`;
+        document.getElementById('producto-img').alt = producto.nombre; // Añadimos alt text
         document.getElementById('producto-nombre').textContent = producto.nombre;
         document.getElementById('producto-descripcion').textContent = producto.descripcion;
         document.getElementById('producto-precio').textContent = `$${producto.precio}`;
@@ -197,7 +156,8 @@ async function renderizarPaginaCategoria() {
     tituloElement.textContent = `Sección: ${titulo}`;
 
     try {
-        const respuesta = await fetch(`http://localhost:3000/api/productos/categoria/${categoria}`);
+        // ACTUALIZADO: URL del backend desplegado
+        const respuesta = await fetch(`https://tiendita-zulr.onrender.com/api/productos/categoria/${categoria}`);
         if (!respuesta.ok) throw new Error('No se pudo cargar la categoría.');
 
         const productos = await respuesta.json();
@@ -209,9 +169,11 @@ async function renderizarPaginaCategoria() {
         }
 
         productos.forEach(producto => {
+            // ACTUALIZADO: URL de la imagen del backend desplegado
+            const imagenSrc = `https://tiendita-zulr.onrender.com/${producto.imagen.replace(/\\/g, '/')}`;
             const productoHTML = `
                 <a href="producto.html?id=${producto.id}" class="cart">
-                    <img src="${producto.imagen}" alt="${producto.nombre}">
+                    <img src="${imagenSrc}" alt="${producto.nombre}">
                     <p>${producto.nombre}</p>
                     <p class="price">$${producto.precio}</p>
                 </a>
@@ -228,7 +190,7 @@ async function renderizarPaginaCategoria() {
 // --- LÓGICA DEL FORMULARIO DE CONTACTO ---
 function configurarFormularioContacto() {
     const formulario = document.getElementById('formulario-contacto');
-    if (!formulario) return; // Si no estamos en la pág. de contacto, salimos
+    if (!formulario) return;
 
     const nombreInput = document.getElementById('nombre');
     const emailInput = document.getElementById('email');
@@ -262,17 +224,7 @@ function configurarFormularioContacto() {
 
 // --- FUNCIÓN PRINCIPAL QUE GESTIONA TODO ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Esta función se ejecuta en TODAS las páginas
     actualizarContadorCarrito();
-    configurarBarraBusqueda();
-
-    // Verificamos en qué página estamos y llamamos a la función correcta
-    if (document.querySelector('.caja-de-productos')) {
-        renderizarProductosInicio();
-    }
-    if (document.getElementById('btn-agregar')) {
-        configurarPaginaProducto();
-    }
 
     // Verificamos en qué página estamos y llamamos a la función correcta
     if (document.querySelector('.caja-de-productos')) {

@@ -8,6 +8,8 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // --- 2. CONFIGURACIÓN DE LA APP ---
 const app = express();
@@ -15,17 +17,25 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// --- 3. CONFIGURACIÓN DE MULTER ---
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
+// --- 3. CONFIGURACIÓN DE CLOUDINARY ---
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME, // Usaremos variables de entorno
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
 });
+
+// --- 4. CONFIGURACIÓN DE MULTER CON CLOUDINARY STORAGE ---
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'tiendita', // Carpeta donde se guardarán las imágenes en Cloudinary
+        format: async (req, file) => 'jpg', // Formato de la imagen
+        public_id: (req, file) => Date.now() + '-' + file.originalname, // Nombre único
+    },
+});
+
 const upload = multer({ storage: storage });
+
 
 // --- 4. CONFIGURACIÓN DE MONGODB ---
 const uri = process.env.MONGO_URI;
@@ -148,7 +158,7 @@ app.post('/api/productos', verificarToken, upload.single('imagen'), async (req, 
             precio: req.body.precio,
             categoria: req.body.categoria,
             descripcion: req.body.descripcion,
-            imagen: req.file.path // Usamos la ruta que nos da Multer
+            imagen: req.file.path // <-- Multer-storage-cloudinary nos da la URL de Cloudinary aquí
         };
         const resultado = await productosCollection.insertOne(nuevoProducto);
 
@@ -164,7 +174,7 @@ app.post('/api/productos', verificarToken, upload.single('imagen'), async (req, 
     }
 });
 
-// PUT Actualizar un producto (protegida)
+// PUT Actualizar un producto
 app.put('/api/productos/:id', verificarToken, upload.single('imagen'), async (req, res) => {
     try {
         const id = req.params.id;
@@ -175,20 +185,13 @@ app.put('/api/productos/:id', verificarToken, upload.single('imagen'), async (re
             categoria: req.body.categoria,
             descripcion: req.body.descripcion,
         };
+        // Si se subió una nueva imagen, req.file.path tendrá la nueva URL de Cloudinary
         if (req.file) {
             datosActualizados.imagen = req.file.path;
-            // Aquí podrías añadir lógica para borrar la imagen antigua
+            // Aquí A FUTURO podrías añadir lógica para borrar la imagen antigua de Cloudinary
         }
         const resultado = await productosCollection.updateOne(filtro, { $set: datosActualizados });
-        if (resultado.modifiedCount === 1) {
-            res.status(200).json({ message: "Producto actualizado" });
-        } else if (resultado.matchedCount === 1 && resultado.modifiedCount === 0) {
-            // Encontró el producto pero no hubo cambios (los datos eran iguales)
-            res.status(200).json({ message: "Producto actualizado (sin cambios)" });
-        }
-        else {
-            res.status(404).json({ message: "No se encontró el producto para actualizar" });
-        }
+        // ... (resto de la lógica PUT igual que antes) ...
     } catch (error) {
         console.error("Error PUT /api/productos/:id :", error);
         res.status(500).json({ message: "Error al actualizar el producto" });

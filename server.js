@@ -1,4 +1,4 @@
-// Archivo: server.js (VERSIÓN FINAL COMPLETA PARA DESPLIEGUE)
+// Archivo: server.js (VERSIÓN FINAL COMPLETA Y CORRECTA)
 
 // --- 1. IMPORTACIONES ---
 const express = require('express');
@@ -11,40 +11,32 @@ const jwt = require('jsonwebtoken');
 
 // --- 2. CONFIGURACIÓN DE LA APP ---
 const app = express();
-// Puerto dinámico para Render o 3000 para local
 const port = process.env.PORT || 3000;
 app.use(cors());
-app.use(express.json()); // Para entender JSON
-// Hacemos la carpeta 'uploads' pública para que el frontend pueda ver las imágenes
-// Esto es crucial para que Render pueda servir las imágenes subidas
+app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- 3. CONFIGURACIÓN DE MULTER (SUBIDA DE ARCHIVOS) ---
+// --- 3. CONFIGURACIÓN DE MULTER ---
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Los archivos se guardarán en la carpeta "uploads"
+        cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // Nombre único para el archivo
         cb(null, Date.now() + '-' + file.originalname);
     }
 });
 const upload = multer({ storage: storage });
 
 // --- 4. CONFIGURACIÓN DE MONGODB ---
-// Leemos la URI y el secreto JWT desde las Variables de Entorno (configuradas en Render)
 const uri = process.env.MONGO_URI;
 const jwtSecret = process.env.JWT_SECRET;
 
-// Verificamos que las variables de entorno estén configuradas
 if (!uri || !jwtSecret) {
     console.error("ERROR: Las variables de entorno MONGO_URI y JWT_SECRET deben estar definidas.");
     process.exit(1);
 }
 
 const client = new MongoClient(uri);
-
-// Variables globales para las colecciones
 let productosCollection;
 let usuariosCollection;
 
@@ -52,14 +44,13 @@ let usuariosCollection;
 async function connectDB() {
     try {
         await client.connect();
-        const database = client.db("tienditaDB"); // Puedes cambiar "tienditaDB" si quieres
+        const database = client.db("tienditaDB");
         productosCollection = database.collection("productos");
         usuariosCollection = database.collection("usuarios");
-
         console.log("¡Conectado exitosamente a la base de datos!");
     } catch (error) {
         console.error("Falló la conexión a la base de datos", error);
-        process.exit(1); // Detenemos la app si no nos podemos conectar
+        process.exit(1);
     }
 }
 
@@ -67,27 +58,160 @@ async function connectDB() {
 function verificarToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+    if (token == null) return res.sendStatus(401);
 
-    if (token == null) return res.sendStatus(401); // No hay token
-
-    jwt.verify(token, jwtSecret, (err, user) => { // Usamos el secreto de las variables de entorno
-        if (err) return res.sendStatus(403); // Token inválido o expirado
-        req.user = user; // Guardamos la info del usuario decodificada
-        next(); // Continuamos a la ruta protegida
+    jwt.verify(token, jwtSecret, (err, user) => {
+        if (err) return res.sendStatus(403);
+        req.user = user;
+        next();
     });
 }
 
 // --- 7. RUTAS DE LA API ---
 
 // --- RUTAS DE PRODUCTOS (PÚBLICAS) ---
-app.get('/api/productos', async (req, res) => { /* ... (código igual que antes) ... */ });
-app.get('/api/productos/categoria/:categoria', async (req, res) => { /* ... (código igual que antes) ... */ });
-app.get('/api/productos/buscar', async (req, res) => { /* ... (código igual que antes) ... */ });
+
+// GET Todos los productos
+app.get('/api/productos', async (req, res) => {
+    try {
+        const productos = await productosCollection.find({}).toArray();
+        const productosConId = productos.map(p => ({
+            id: p._id.toString(),
+            nombre: p.nombre,
+            precio: p.precio,
+            imagen: p.imagen,
+            descripcion: p.descripcion,
+            categoria: p.categoria
+        }));
+        res.json(productosConId);
+    } catch (error) {
+        console.error("Error GET /api/productos:", error);
+        res.status(500).json({ message: "Error al obtener los productos" });
+    }
+});
+
+// GET Productos por Categoría
+app.get('/api/productos/categoria/:categoria', async (req, res) => {
+    try {
+        const categoria = req.params.categoria;
+        const productos = await productosCollection.find({ categoria: categoria }).toArray();
+        const productosConId = productos.map(p => ({
+            id: p._id.toString(),
+            nombre: p.nombre,
+            precio: p.precio,
+            imagen: p.imagen,
+            descripcion: p.descripcion,
+            categoria: p.categoria
+        }));
+        res.json(productosConId);
+    } catch (error) {
+        console.error("Error GET /api/productos/categoria:", error);
+        res.status(500).json({ message: "Error al obtener los productos" });
+    }
+});
+
+// GET Buscar productos
+app.get('/api/productos/buscar', async (req, res) => {
+    try {
+        const busqueda = req.query.q;
+        if (!busqueda) {
+            return res.status(400).json({ message: "No se proporcionó un término de búsqueda" });
+        }
+        const productos = await productosCollection.find({
+            nombre: { $regex: busqueda, $options: 'i' }
+        }).toArray();
+        const productosConId = productos.map(p => ({
+            id: p._id.toString(),
+            nombre: p.nombre,
+            precio: p.precio,
+            imagen: p.imagen,
+            descripcion: p.descripcion,
+            categoria: p.categoria
+        }));
+        res.json(productosConId);
+    } catch (error) {
+        console.error("Error GET /api/productos/buscar:", error);
+        res.status(500).json({ message: "Error al obtener los productos" });
+    }
+});
 
 // --- RUTAS DE PRODUCTOS (PROTEGIDAS - REQUIEREN TOKEN) ---
-app.post('/api/productos', verificarToken, upload.single('imagen'), async (req, res) => { /* ... (código igual que antes) ... */ });
-app.put('/api/productos/:id', verificarToken, upload.single('imagen'), async (req, res) => { /* ... (código igual que antes) ... */ });
-app.delete('/api/productos/:id', verificarToken, async (req, res) => { /* ... (código igual que antes) ... */ });
+
+// POST Crear un producto (protegida)
+app.post('/api/productos', verificarToken, upload.single('imagen'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No se subió ninguna imagen" });
+        }
+        const nuevoProducto = {
+            nombre: req.body.nombre,
+            precio: req.body.precio,
+            categoria: req.body.categoria,
+            descripcion: req.body.descripcion,
+            imagen: req.file.path // Usamos la ruta que nos da Multer
+        };
+        const resultado = await productosCollection.insertOne(nuevoProducto);
+
+        if (resultado.insertedId) {
+            const productoCreado = { _id: resultado.insertedId, ...nuevoProducto };
+            res.status(201).json(productoCreado);
+        } else {
+            res.status(500).json({ message: "Error al guardar el producto en la BD" });
+        }
+    } catch (error) {
+        console.error("Error POST /api/productos:", error);
+        res.status(500).json({ message: "Error al crear el producto" });
+    }
+});
+
+// PUT Actualizar un producto (protegida)
+app.put('/api/productos/:id', verificarToken, upload.single('imagen'), async (req, res) => {
+    try {
+        const id = req.params.id;
+        const filtro = { _id: new ObjectId(id) };
+        const datosActualizados = {
+            nombre: req.body.nombre,
+            precio: req.body.precio,
+            categoria: req.body.categoria,
+            descripcion: req.body.descripcion,
+        };
+        if (req.file) {
+            datosActualizados.imagen = req.file.path;
+            // Aquí podrías añadir lógica para borrar la imagen antigua
+        }
+        const resultado = await productosCollection.updateOne(filtro, { $set: datosActualizados });
+        if (resultado.modifiedCount === 1) {
+            res.status(200).json({ message: "Producto actualizado" });
+        } else if (resultado.matchedCount === 1 && resultado.modifiedCount === 0) {
+            // Encontró el producto pero no hubo cambios (los datos eran iguales)
+            res.status(200).json({ message: "Producto actualizado (sin cambios)" });
+        }
+        else {
+            res.status(404).json({ message: "No se encontró el producto para actualizar" });
+        }
+    } catch (error) {
+        console.error("Error PUT /api/productos/:id :", error);
+        res.status(500).json({ message: "Error al actualizar el producto" });
+    }
+});
+
+// DELETE Borrar un producto (protegida)
+app.delete('/api/productos/:id', verificarToken, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const filtro = { _id: new ObjectId(id) };
+        // Aquí podrías añadir lógica para borrar la imagen del producto del servidor
+        const resultado = await productosCollection.deleteOne(filtro);
+        if (resultado.deletedCount === 1) {
+            res.status(200).json({ message: "Producto eliminado" });
+        } else {
+            res.status(404).json({ message: "No se encontró el producto" });
+        }
+    } catch (error) {
+        console.error("Error DELETE /api/productos/:id :", error);
+        res.status(500).json({ message: "Error al eliminar el producto" });
+    }
+});
 
 // --- RUTA DE AUTENTICACIÓN (PÚBLICA) ---
 app.post('/api/login', async (req, res) => {
@@ -101,7 +225,6 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ message: "Email o contraseña incorrectos" });
         }
         const payload = { id: usuario._id, esAdmin: usuario.esAdmin };
-        // Usamos el secreto JWT de las variables de entorno
         const token = jwt.sign(payload, jwtSecret, { expiresIn: '1h' });
         res.status(200).json({ message: "Login exitoso", token: token });
     } catch (error) {
@@ -114,9 +237,9 @@ app.post('/api/login', async (req, res) => {
 // --- 8. INICIO DEL SERVIDOR ---
 async function startServer() {
     try {
-        await connectDB(); // Conectamos a la BD primero
-        app.listen(port, () => { // Luego iniciamos el servidor
-            console.log(`¡Servidor escuchando en http://localhost:${port}`);
+        await connectDB();
+        app.listen(port, () => {
+            console.log(`¡Servidor escuchando en http://localhost:${port} o en tu URL de Render`);
         });
     } catch (error) {
         console.error("No se pudo iniciar el servidor:", error);

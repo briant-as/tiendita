@@ -105,7 +105,7 @@ async function cargarProductosAdmin() {
 
         productos.forEach(producto => {
             // ACTUALIZADO: URL de la imagen del backend desplegado
-            const imagenSrc = `https://tiendita-zulr.onrender.com/${producto.imagen.replace(/\\/g, '/')}`;
+            const imagenSrc = producto.imagen;
             const productoHTML = `
                 <div class="item-admin" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 0;">
                     <img src="${imagenSrc}" alt="${producto.nombre || 'Producto sin nombre'}" width="50" height="50" style="object-fit: cover; border: 1px solid #eee;">

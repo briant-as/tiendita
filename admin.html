@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Reutilizamos los mismos estilos del formulario de contacto */
+        .panel-admin {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .form-grupo {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-grupo label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-grupo input,
+        .form-grupo textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #btn-agregar-producto {
+            background-color: #28a745;
+            /* Color verde */
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        #mensaje-respuesta {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 class="logo"><a href="index.html">Tiendita - Panel Admin</a></h1>
+        <nav>
+            <ul>
+                <li><a href="categoria.html?cat=novedades">Novedades</a></li>
+                <li><a href="categoria.html?cat=hombre">Hombre</a></li>
+                <li><a href="categoria.html?cat=mujer">Mujer</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+                <li><a href="carrito.html" id="icono-carrito">🛒 (<span id="contador-carrito">0</span>)</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="panel-admin">
+            <h2>Añadir Nuevo Producto</h2>
+
+            <form id="form-nuevo-producto">
+                <div class="form-grupo">
+                    <label for="nombre">Nombre del Producto:</label>
+                    <input type="text" id="nombre" required>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="precio">Precio:</label>
+                    <input type="text" id="precio" required>
+                </div>
+                <div class="form-grupo">
+                    <label for="categoria">Categoría:</label>
+                    <select id="categoria" required>
+                        <option value="">-- Elige una categoría --</option>
+                        <option value="novedades">Novedades</option>
+                        <option value="hombre">Hombre</option>
+                        <option value="mujer">Mujer</option>
+                    </select>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="imagen">Imagen del Producto:</label>
+                    <input type="file" id="imagen" accept="image/*" required>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="descripcion">Descripción:</label>
+                    <textarea id="descripcion" rows="4" required></textarea>
+                </div>
+
+                <button type="submit" id="btn-agregar-producto">Añadir Producto</button>
+            </form>
+
+            <div id="mensaje-respuesta"></div>
+
+        </section>
+        <section class="panel-admin">
+            <h2>Gestionar Productos Existentes</h2>
+
+            <div id="lista-productos-admin">
+                <p>Cargando productos...</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

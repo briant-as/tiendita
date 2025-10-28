@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contacto - Tiendita</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Estilos adicionales solo para el formulario */
+        .pagina-contacto {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .form-grupo {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-grupo label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-grupo input,
+        .form-grupo textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .form-grupo textarea {
+            height: 150px;
+            resize: vertical;
+        }
+
+        #btn-enviar {
+            background-color: #007BFF;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        #mensaje-error {
+            color: red;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 class="logo"><a href="index.html">Tiendita</a></h1>
+        <nav>
+            <ul>
+                <li><a href="categoria.html?cat=novedades">Novedades</a></li>
+                <li><a href="categoria.html?cat=hombre">Hombre</a></li>
+                <li><a href="categoria.html?cat=mujer">Mujer</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+                <li><a href="carrito.html" id="icono-carrito">🛒 (<span id="contador-carrito">0</span>)</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="pagina-contacto">
+            <h2>Ponte en Contacto</h2>
+            <p>¿Tienes alguna pregunta? Rellena el formulario y te responderemos pronto.</p>
+
+            <form id="formulario-contacto" novalidate>
+                <div id="mensaje-error"></div>
+                <div class="form-grupo">
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="email">Correo Electrónico:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-grupo">
+                    <label for="mensaje">Mensaje:</label>
+                    <textarea id="mensaje" name="mensaje" required></textarea>
+                </div>
+
+                <button type="submit" id="btn-enviar">Enviar Mensaje</button>
+            </form>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script src="contacto.js"></script>
+</body>
+
+</html>
